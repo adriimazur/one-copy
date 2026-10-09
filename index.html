@@ -1,0 +1,969 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>One Copy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Homemade+Apple&family=Special+Elite&family=La+Belle+Aurore&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --muted:#8a95a1; --soft:#5a6470;
+  --paper:#f6f8fb; --blush:#dde8f3; --blush-d:#c7d6e7; --blush-in:#b1c4d9;
+  --ink:#24292e; --red:#799cc4; --rose:#799cc4; --lav:#a2b6cd; --peach:#a4caf5; --sky:#bcd0e2; --date:#3d98ff;
+  --hand:'Caveat',cursive; --pen:'Homemade Apple',cursive; --script:'La Belle Aurore',cursive; --ink-blue:#2b4a8b; --postal:#1f2226; --censor:#5a3f8f; --serif:'Cormorant Garamond',Georgia,serif; --mono:'Share Tech Mono',ui-monospace,monospace;
+  --type:var(--serif); --bold:var(--serif);
+  --noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --fiber:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.006 .22' numOctaves='2' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  /* light leak + film fade, layered over any print */
+  --leak:radial-gradient(55% 75% at -5% 0%,rgba(95,170,255,.42),rgba(140,194,255,.12) 55%,transparent 75%),radial-gradient(50% 60% at 105% 105%,rgba(117,176,243,.26),transparent 70%),radial-gradient(35% 35% at 90% 4%,rgba(200,226,255,.55),transparent 70%);
+  --glow:0 30px 60px -20px rgba(121,156,196,.35),0 10px 24px -10px rgba(36,41,46,.18);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{min-height:100vh;background:#fff;color:var(--ink);font-family:var(--serif);font-size:18px;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+/* whole-screen film grain, very faint */
+body::after{content:'';position:fixed;inset:-50%;background-image:var(--noise);background-size:200px;opacity:.07;mix-blend-mode:multiply;pointer-events:none;z-index:100;animation:grain 1.2s steps(4) infinite}
+@keyframes grain{25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-2%,-1%)}}
+#app{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:36px 16px 96px}
+button{font:inherit;color:inherit}
+a{color:inherit}
+
+/* paper grain + faded film colour on any print */
+.tex{position:relative}
+.tex::after{content:'';position:absolute;inset:0;background-image:var(--noise),var(--fiber);background-size:220px,420px;mix-blend-mode:multiply;opacity:.11;pointer-events:none;border-radius:inherit}
+.leak::before{content:'';position:absolute;inset:0;background:var(--leak);pointer-events:none;z-index:1;border-radius:inherit}
+
+/* disposable-camera date imprint */
+.datestamp{font-family:var(--mono);color:var(--date);letter-spacing:.08em;text-shadow:0 0 .35em rgba(40,140,255,.65),0 0 .08em rgba(120,183,255,.9);opacity:.9}
+
+/* ---------- logo ---------- */
+.top{text-align:center;margin:10px 0 30px}
+.wordmark{display:inline-flex;align-items:center;gap:.32em;text-decoration:none;font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,40px);letter-spacing:.02em;color:var(--ink)}
+.wordmark .mark{width:1.05em;height:1.05em;border-radius:47% 53% 50% 48%/52% 46% 54% 48%;background:radial-gradient(circle at 34% 30%,#b8d3f1,#799dc6 55%,#56779c);box-shadow:inset .06em .08em .14em rgba(255,255,255,.45),0 .08em .2em rgba(78,113,152,.35);display:grid;place-items:center;font-size:.62em;font-style:italic;color:rgba(33,65,102,.55)}
+.tag{font-family:var(--serif);font-style:italic;font-size:20px;margin:10px 0 0;color:var(--soft)}
+
+/* ---------- buttons: perforated postage stamps, raised off the page ---------- */
+.btn{--perf:5px;position:relative;isolation:isolate;display:inline-block;font-family:var(--serif);font-style:italic;font-weight:500;font-size:21px;letter-spacing:.01em;color:var(--ink);
+  background:none;border:0;padding:1em 1.9em 1.05em;cursor:pointer;text-decoration:none;transform:rotate(var(--tilt,-1.5deg));
+  filter:drop-shadow(0 1px 1px rgba(58,88,122,.18)) drop-shadow(0 8px 12px rgba(121,156,196,.28));
+  transition:transform .35s cubic-bezier(.2,.8,.2,1),filter .35s}
+/* the perforated paper */
+.btn::before{content:'';position:absolute;inset:0;z-index:-2;
+  background:linear-gradient(145deg,#ffffff,#f1f6fb);
+  -webkit-mask:linear-gradient(#000 0 0) center/calc(100% - calc(var(--perf) * 2)) calc(100% - calc(var(--perf) * 2)) no-repeat,radial-gradient(circle calc(var(--perf) * .62) at var(--perf) var(--perf),#0000 96%,#000) calc(var(--perf) * -1) calc(var(--perf) * -1)/calc(var(--perf) * 2) calc(var(--perf) * 2) round;
+          mask:linear-gradient(#000 0 0) center/calc(100% - calc(var(--perf) * 2)) calc(100% - calc(var(--perf) * 2)) no-repeat,radial-gradient(circle calc(var(--perf) * .62) at var(--perf) var(--perf),#0000 96%,#000) calc(var(--perf) * -1) calc(var(--perf) * -1)/calc(var(--perf) * 2) calc(var(--perf) * 2) round}
+/* the printed picture inside the margin: soft, pillowy, lit from the top-left */
+.btn::after{content:'';position:absolute;inset:calc(var(--perf) + 4px);z-index:-1;border-radius:2px;
+  background:radial-gradient(120% 90% at 20% 0%,rgba(255,255,255,.75),transparent 60%),linear-gradient(160deg,#e8f1fb,#d2e2f4);
+  box-shadow:inset 1.5px 1.5px 2px rgba(255,255,255,.9),inset -2px -2px 4px rgba(98,133,172,.18),0 0 0 1px rgba(121,156,196,.18);transition:box-shadow .25s}
+.btn:hover{transform:rotate(var(--tilt,-1.5deg)) translateY(-3px);filter:drop-shadow(0 2px 1px rgba(58,88,122,.16)) drop-shadow(0 16px 20px rgba(121,156,196,.34))}
+.btn:active{transform:rotate(var(--tilt,-1.5deg)) translateY(1px) scale(.985);filter:drop-shadow(0 1px 1px rgba(58,88,122,.2)) drop-shadow(0 3px 5px rgba(121,156,196,.2))}
+.btn:active::after{box-shadow:inset 2px 2px 5px rgba(83,115,152,.28),inset -1px -1px 2px rgba(255,255,255,.7),0 0 0 1px rgba(121,156,196,.2)}
+.btn:focus-visible{outline:none}
+.btn:focus-visible::after{box-shadow:inset 1.5px 1.5px 2px rgba(255,255,255,.9),0 0 0 2px var(--rose)}
+.btn.solid{color:#fff;text-shadow:0 1px 1px rgba(15,35,65,.55),0 -1px 0 rgba(255,255,255,.15)}
+.btn.solid::after{background:radial-gradient(110% 90% at 18% 0%,rgba(255,255,255,.28),transparent 55%),linear-gradient(150deg,#2f5b8f,#3b6ba3 45%,#4a7db6),var(--noise);background-blend-mode:normal,normal,soft-light;background-size:auto,auto,140px;
+  box-shadow:inset 1.5px 1.5px 2px rgba(255,255,255,.3),inset -2px -3px 5px rgba(10,30,60,.4),0 0 0 1px rgba(25,50,85,.35)}
+.btn.solid:active::after{box-shadow:inset 3px 3px 7px rgba(10,30,60,.5),inset -1px -1px 2px rgba(255,255,255,.35)}
+.btn.quiet{font-size:18px;--tilt:1.5deg;padding:.85em 1.6em .9em}
+.btn.quiet::after{background:linear-gradient(160deg,#fffdf9,#eaf1f8);box-shadow:inset 1px 1px 2px rgba(255,255,255,.9),inset -1px -1px 3px rgba(99,123,151,.14),0 0 0 1px rgba(36,41,46,.12)}
+.btn[disabled]{opacity:.5;pointer-events:none}
+.center{text-align:center}
+.back{display:inline-block;font-family:var(--serif);font-style:italic;color:var(--muted);text-decoration:none;margin-bottom:20px;font-size:18px}
+.back:hover{color:var(--ink)}
+.label{font-family:var(--serif);font-weight:500;font-size:13px;letter-spacing:.32em;text-transform:uppercase;color:var(--muted);margin:56px 0 22px;display:flex;align-items:center;gap:14px}
+.label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(121,156,196,.35),transparent)}
+.fine{font-size:16px;font-style:italic;color:var(--muted);text-align:center;margin:16px auto 0;max-width:420px;line-height:1.45}
+.kicker{font-family:var(--serif);letter-spacing:.3em;text-transform:uppercase;font-size:12px;color:var(--muted);text-align:center}
+.instr{font-family:var(--serif);font-style:italic;font-size:24px;text-align:center;color:var(--soft);margin:38px 0 0;min-height:1.3em;transition:opacity .6s;animation:breathe 3.2s ease-in-out infinite}
+@keyframes breathe{50%{opacity:.55}}
+
+/* ---------- envelope ---------- */
+.env{--w:min(500px,86vw);width:var(--w);height:calc(var(--w) * .62);position:relative;font-size:calc(var(--w) / 26);margin:0 auto;
+  transition:transform .35s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 1.2em 1.6em rgba(121,156,196,.22)) drop-shadow(0 .2em .3em rgba(36,41,46,.08)) contrast(.97);color:var(--ink)}
+.env.flipping{transform:scaleX(0) rotate(-1deg)}
+.env > .face{position:absolute;inset:0}
+.env.show-back > .front, .env:not(.show-back) > .back{display:none}
+.env.tappable{cursor:pointer}
+.env.floaty{animation:floaty 6s ease-in-out infinite}
+@keyframes floaty{50%{translate:0 -10px;rotate:.6deg}}
+.env.fly{transition:transform 1.4s cubic-bezier(.5,0,.3,1),opacity 1.4s,filter 1.4s;transform:translate(30vw,-70vh) rotate(14deg) scale(.5);opacity:0}
+
+.front{background:linear-gradient(160deg,#edf3f9,#dde8f3 60%,#d2e0ee);border-radius:.35em;overflow:hidden}
+.front .airmail{display:none}
+.front .from-line{position:absolute;left:1.5em;top:1.3em;font-family:var(--hand);font-size:1.3em;line-height:1.05;opacity:.75;z-index:2}
+.front .from-line small{display:block;font-family:var(--serif);font-style:italic;font-size:.6em;opacity:.8}
+.front .addr{position:absolute;left:32%;top:50%;right:1em;font-family:var(--hand);font-weight:600;font-size:2.6em;line-height:1;transform:rotate(-2deg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-bottom:.1em;border-bottom:1px solid rgba(36,41,46,.18);z-index:2}
+.front .addr small{font-family:var(--serif);font-style:italic;font-weight:400;font-size:.36em;margin-right:.4em;opacity:.65}
+.front .handle{position:absolute;left:1.5em;bottom:1.1em;font-size:.72em;z-index:2}
+.front .stamp{position:absolute;right:1.3em;top:1.1em;z-index:2}
+.front .pm{position:absolute;right:.6em;width:11em;color:rgba(89,109,131,.42);mix-blend-mode:multiply;filter:url(#ink) blur(.2px);pointer-events:none;z-index:2}
+
+/* stamps: tiny faded film photos with perforated edges */
+.stamp{width:4.3em;height:5.1em;padding:.3em;background:#f4f9ff;transform:rotate(3deg);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,radial-gradient(circle .16em at .24em .24em,#0000 96%,#000) -.24em -.24em/.48em .48em;
+          mask:linear-gradient(#000 0 0) content-box,radial-gradient(circle .16em at .24em .24em,#0000 96%,#000) -.24em -.24em/.48em .48em}
+.stamp-art{width:100%;height:100%;background:var(--sc);color:#f4f9ff;position:relative;display:grid;place-items:center;overflow:hidden;font-family:var(--serif);filter:saturate(.8)}
+.stamp-art svg{width:100%;height:100%;position:absolute;inset:0}
+.stamp-art .val{position:absolute;left:.35em;top:.15em;font-size:.8em;font-style:italic;z-index:1}
+.stamp-art .cap{position:absolute;bottom:.3em;left:0;right:0;text-align:center;font-size:.42em;letter-spacing:.22em;z-index:1}
+.stamp-art::after{content:'';position:absolute;inset:0;background-image:var(--noise);background-size:120px;mix-blend-mode:soft-light;opacity:.6}
+
+/* back of envelope: inside, letter, pocket, flap */
+.back > *{position:absolute}
+.env-inside{inset:0;border-radius:.35em;background:linear-gradient(#a3b8cf,#b6c8dc 55%,var(--blush-d));box-shadow:inset 0 1.2em 1.4em -1em rgba(69,93,121,.35)}
+.letter-peek{left:5%;width:90%;top:4%;height:88%;background:var(--paper);border-radius:2px;z-index:1;transition:transform 1.1s cubic-bezier(.2,.8,.2,1),opacity .9s;
+  background-image:repeating-linear-gradient(transparent 0 calc(1.4em - 1px),rgba(159,185,215,.22) calc(1.4em - 1px) 1.4em);background-position:0 2.4em;padding:.9em 1.4em;font-family:var(--hand);font-size:1.25em;color:var(--ink);touch-action:none}
+.letter-peek .scribble{height:.3em;margin:1.05em 0 0;background:rgba(36,41,46,.12);border-radius:1em;filter:blur(1px)}
+.back.risen .letter-peek{transform:translateY(-58%)}
+.back.risen.pullable .letter-peek{cursor:grab}
+.back.pulled .letter-peek{transform:translateY(-160%) rotate(-3deg);opacity:0;filter:blur(2px)}
+.pocket{inset:0;z-index:2;border-radius:.35em;background:radial-gradient(70% 60% at 50% 100%,#e8eff7,var(--blush) 70%);clip-path:polygon(0 0,50% 54%,100% 0,100% 100%,0 100%)}
+.pocket svg{position:absolute;inset:0;width:100%;height:100%}
+.flap{left:0;top:0;width:100%;height:60%;z-index:3;transform-origin:50% 0;transform-style:preserve-3d;transform:perspective(1100px) rotateX(0deg);touch-action:none}
+.flap.behind{z-index:0}
+.flap.grabbable{cursor:grab}
+.flap.grabbing{cursor:grabbing}
+.flap .side{position:absolute;inset:0;-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.flap .out{filter:drop-shadow(0 .25em .3em rgba(88,118,152,.22))}
+.flap .in{transform:rotateX(180deg)}
+.flap .shape{position:absolute;inset:0;clip-path:polygon(0 0,100% 0,50% 100%);background:linear-gradient(#e4ecf5,#d3e0ed)}
+.flap .in .shape{clip-path:polygon(50% 0,100% 100%,0 100%);background:linear-gradient(#a1b6cd,#b4c6da)}
+.flap.wiggle{animation:wiggle .7s}
+@keyframes wiggle{30%{transform:perspective(1100px) rotateX(18deg)}60%{transform:perspective(1100px) rotateX(5deg)}}
+
+/* wax seal: dusty rose */
+.seal{position:absolute;left:50%;top:100%;width:3.5em;height:3.5em;transform:translate(-50%,-64%) rotate(-8deg);border-radius:47% 53% 50% 48%/52% 46% 54% 48%;
+  background:radial-gradient(circle at 34% 30%,#b8d3f1,#799dc6 50%,#56779c);display:grid;place-items:center;
+  box-shadow:inset 0 0 0 .38em rgba(28,58,92,.1),inset .1em .15em .3em rgba(255,255,255,.45),0 .2em .5em rgba(78,113,152,.35);transition:transform .4s}
+.seal::before{content:'';position:absolute;inset:-.22em -.1em -.12em -.28em;border-radius:58% 42% 61% 39%/45% 57% 43% 55%;background:#6f92bb;z-index:-1}
+.seal b{font-family:var(--serif);font-style:italic;font-weight:500;font-size:1.7em;color:rgba(33,65,102,.5);text-shadow:0 .04em 0 rgba(255,255,255,.35)}
+.seal.hint{animation:nudge 2.6s ease-in-out infinite}
+@keyframes nudge{0%,55%,100%{transform:translate(-50%,-64%) rotate(-8deg)}75%{transform:translate(-50%,-76%) rotate(-8deg)}}
+.seal.cracked::after{content:'';position:absolute;top:10%;bottom:10%;left:46%;width:.1em;background:rgba(28,58,92,.55);clip-path:polygon(0 0,100% 0,40% 22%,100% 40%,20% 62%,100% 80%,50% 100%,0 100%,60% 78%,0 60%,70% 40%,0 22%);transform:rotate(14deg)}
+.seal.cracked{transform:translate(-50%,-64%) rotate(-4deg) scale(1.04)}
+.seal.pre{opacity:0;transform:translate(-50%,-64%) scale(1.8) rotate(-20deg)}
+.seal.thud{transition:transform .6s cubic-bezier(.3,1.3,.5,1),opacity .4s}
+
+/* ---------- desk ---------- */
+.desk{display:flex;flex-wrap:wrap;justify-content:center;gap:40px 30px;padding:6px 0}
+.mini{display:block;text-decoration:none;transform:rotate(var(--r));transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.mini:hover,.mini:focus-visible{transform:rotate(0deg) translateY(-8px)}
+.mini .env{--w:min(280px,80vw)}
+.ghost{--w:min(280px,80vw);width:var(--w);height:calc(var(--w) * .62);border:1px dashed rgba(121,156,196,.4);border-radius:8px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;color:var(--muted);text-align:center;padding:14px;transform:rotate(var(--r));background:linear-gradient(160deg,rgba(214,228,243,.3),rgba(164,202,245,.12));cursor:pointer}
+.ghost b{font-family:var(--hand);font-size:28px;color:var(--ink);font-weight:500;opacity:.7}
+.ghost span{font-size:14px;font-style:italic}
+.ghost.done{cursor:default;opacity:.5;filter:blur(.3px)}
+.empty{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--muted);text-align:center;max-width:440px;margin:6px auto;line-height:1.35}
+
+/* ---------- the desk (home): a flat-lay on white paper, letters you can push around ---------- */
+.room{position:fixed;inset:0;overflow:hidden;background:radial-gradient(90% 80% at 20% 10%,#ffffff,#f6f7f8 60%,#eceef0);touch-action:none;user-select:none;-webkit-user-select:none}
+/* soft daylight from the top-left, like a photo by a window */
+.room::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:900;
+  background:radial-gradient(60% 50% at 0% 0%,rgba(255,255,255,.55),transparent 70%),radial-gradient(140% 120% at 50% 40%,transparent 60%,rgba(40,50,60,.07))}
+.room > *{position:absolute}
+.room .brand{left:clamp(16px,4vw,44px);top:clamp(16px,4vh,36px);z-index:800;pointer-events:none}
+.room .brand a{pointer-events:auto}
+.room .brand .tag{margin:6px 0 0;font-size:18px;text-align:left}
+
+.scatter{inset:0}
+.card{--w:min(330px,64vw);position:absolute;left:var(--x);top:var(--y);width:var(--w);transform:translate(-50%,-50%) rotate(var(--r));cursor:grab;touch-action:none;
+  transition:transform .45s cubic-bezier(.2,.9,.3,1.2),filter .45s;
+  filter:drop-shadow(0 1px 1px rgba(30,40,50,.14)) drop-shadow(5px 9px 10px rgba(30,40,50,.12))}
+.card .env{--w:min(330px,64vw);filter:none}
+.card.lifted{cursor:grabbing;transition:filter .25s;transform:translate(-50%,-50%) rotate(var(--r)) scale(1.05);
+  filter:drop-shadow(0 2px 2px rgba(30,40,50,.1)) drop-shadow(22px 30px 22px rgba(30,40,50,.16))}
+.card.dropped{animation:settle .5s cubic-bezier(.3,1.5,.5,1)}
+@keyframes settle{0%{scale:1.03}60%{scale:.985}100%{scale:1}}
+.card.arrive{animation:arrive .9s cubic-bezier(.2,.9,.3,1.1) both;animation-delay:var(--d)}
+@keyframes arrive{from{opacity:0;translate:0 -40px;scale:1.08}}
+.desk-caption{left:50%;bottom:clamp(18px,4vh,34px);transform:translateX(-50%);font-family:var(--hand);font-size:24px;color:var(--soft);z-index:800;pointer-events:none;white-space:nowrap}
+.empty-desk{left:50%;top:48%;transform:translate(-50%,-50%);width:min(380px,80vw);text-align:center;font-family:var(--serif);font-style:italic;font-size:21px;color:var(--muted);line-height:1.45}
+
+/* the pen, lying on the paper */
+.pen{right:clamp(-30px,-2vw,0px);bottom:clamp(50px,12vh,100px);width:clamp(220px,30vw,330px);transform:rotate(-34deg);transform-origin:70% 50%;cursor:pointer;background:none;border:0;padding:20px 0;z-index:700;
+  filter:drop-shadow(0 1px 1px rgba(20,30,40,.25)) drop-shadow(8px 10px 7px rgba(20,30,40,.16));transition:transform .6s cubic-bezier(.2,.8,.2,1),filter .6s}
+.pen svg{display:block;width:100%;height:auto}
+.pen:hover,.pen:focus-visible{outline:none;transform:rotate(-40deg) translate(-14px,-18px);filter:drop-shadow(0 2px 2px rgba(20,30,40,.14)) drop-shadow(24px 32px 16px rgba(20,30,40,.14))}
+.pen-hint{right:clamp(30px,8vw,120px);bottom:clamp(180px,32vh,280px);font-family:var(--hand);font-size:24px;color:var(--soft);transform:rotate(-6deg);pointer-events:none;transition:opacity .5s;z-index:700}
+.pen:hover ~ .pen-hint{opacity:.3}
+
+/* note of letters out in the world */
+.note{left:clamp(14px,4vw,44px);bottom:clamp(16px,5vh,44px);width:min(240px,44vw);background:#fff;padding:16px 16px 12px;transform:rotate(-3deg);z-index:750;
+  filter:drop-shadow(0 1px 1px rgba(30,40,50,.12)) drop-shadow(4px 8px 9px rgba(30,40,50,.1))}
+.note h3{margin:0 0 6px;font-family:var(--serif);font-weight:500;font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted)}
+.note button,.note div.row{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid rgba(90,115,145,.15);padding:6px 0;font-family:var(--hand);font-size:21px;color:var(--ink);cursor:pointer;line-height:1.1}
+.note div.row{cursor:default;opacity:.5}
+.note small{display:block;font-family:var(--serif);font-style:italic;font-size:13px;color:var(--muted)}
+.note .tape{width:70px;height:20px;top:-9px}
+@media (max-width:640px){.pen-hint{display:none}.desk-caption{display:none}}
+
+/* ---------- paper sheet (write + read) ---------- */
+.sheet-wrap{filter:drop-shadow(0 24px 40px rgba(121,156,196,.2)) drop-shadow(0 2px 4px rgba(36,41,46,.08));max-width:640px;margin:0 auto}
+.sheet{--lh:36px;background-color:var(--paper);color:var(--ink);padding:44px 30px 40px 34px;min-height:420px;
+  background-image:repeating-linear-gradient(transparent 0 calc(var(--lh) - 1px),rgba(159,185,215,.24) calc(var(--lh) - 1px) var(--lh));
+  background-position:0 8px}
+.sheet::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:1;background:var(--leak),linear-gradient(transparent calc(33.3% - 3px),rgba(0,0,0,.04) calc(33.3% - 1px),rgba(255,255,255,.6) 33.3%,transparent calc(33.3% + 3px)),linear-gradient(transparent calc(66.6% - 3px),rgba(0,0,0,.04) calc(66.6% - 1px),rgba(255,255,255,.6) 66.6%,transparent calc(66.6% + 3px))}
+.sheet .date{font-family:var(--mono);font-size:15px;text-align:right;height:var(--lh);line-height:var(--lh);color:var(--date);text-shadow:0 0 .35em rgba(40,140,255,.6);letter-spacing:.08em}
+.sheet .dear,.sheet .sign,.sheet .body,.sheet textarea,.sheet input{font-family:var(--hand);font-size:27px;line-height:var(--lh);color:var(--ink)}
+.sheet .dear{margin:0;min-height:var(--lh);font-weight:600}
+.sheet .body{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;min-height:calc(var(--lh) * 3)}
+.sheet .sign{margin:0;text-align:right;font-weight:600;padding-right:10px}
+.sheet input,.sheet textarea{background:transparent;border:0;outline:0;padding:0;font-weight:600;position:relative;z-index:2}
+.sheet input{border-bottom:1px solid rgba(36,41,46,.2);width:9ch;max-width:60%}
+@supports (field-sizing:content){.sheet input{field-sizing:content;width:auto;min-width:3ch}}
+.sheet input:focus{border-bottom-color:var(--rose)}
+.sheet textarea{display:block;width:100%;min-height:calc(var(--lh) * 7);resize:none;font-weight:500}
+.sheet ::placeholder{color:rgba(36,41,46,.3)}
+.unfold{animation:unfold 1.6s cubic-bezier(.2,.8,.2,1) both;transform-origin:50% 0}
+@keyframes unfold{0%{transform:perspective(900px) rotateX(70deg) scaleY(.34) translateY(-20%);opacity:0;filter:blur(6px)}40%{opacity:1}100%{transform:none;filter:blur(0)}}
+
+/* stamp picker */
+.picker{display:flex;justify-content:center;gap:16px;margin:34px 0 8px;flex-wrap:wrap;border:0;padding:0}
+.picker legend{width:100%;text-align:center;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.picker label{font-size:15px;cursor:pointer;transition:transform .4s;position:relative;opacity:.65}
+.picker label:has(input:checked){opacity:1}
+.picker input{position:absolute;opacity:0}
+.picker label:hover{transform:translateY(-3px);opacity:1}
+.picker input:checked + .stamp{transform:rotate(-4deg) scale(1.12)}
+.picker input:focus-visible + .stamp{filter:drop-shadow(0 0 3px var(--rose))}
+
+/* scraps pinned to a letter (P.S. from each forwarder) */
+.scraps{display:flex;flex-wrap:wrap;justify-content:center;gap:30px 24px;margin:38px auto 0;max-width:680px}
+.scrap{position:relative;transform:rotate(var(--r));max-width:290px;filter:drop-shadow(0 10px 18px rgba(121,156,196,.18))}
+.scrap .paper{background:#f4f9ff;color:var(--ink);padding:18px 18px 16px;font-family:var(--hand);font-size:23px;line-height:1.15}
+.scrap .paper small{display:block;font-family:var(--serif);font-style:italic;font-size:14px;opacity:.6;margin-top:8px}
+.tape{position:absolute;width:86px;height:24px;left:50%;top:-11px;transform:translateX(-50%) rotate(var(--tr,-4deg));z-index:2;
+  background:linear-gradient(90deg,rgba(158,195,237,.5),rgba(164,202,245,.5));
+  -webkit-mask:linear-gradient(90deg,transparent 0 2px,#000 2px calc(100% - 2px),transparent calc(100% - 2px));mask:linear-gradient(90deg,transparent 0 2px,#000 2px calc(100% - 2px),transparent calc(100% - 2px))}
+
+/* routing slip: like notes on the back of a photo */
+.slip{max-width:430px;margin:44px auto 0;background:#f4f9ff;color:var(--ink);padding:20px 22px 16px;transform:rotate(-1deg);box-shadow:var(--glow)}
+.slip h3{font-family:var(--serif);font-weight:500;font-size:12px;letter-spacing:.28em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+.slip ol{list-style:none;margin:0;padding:0;counter-reset:h}
+.slip li{display:flex;align-items:baseline;gap:12px;border-top:1px solid rgba(159,185,215,.25);padding:8px 0;counter-increment:h}
+.slip li::before{content:counter(h);font-family:var(--serif);font-style:italic;font-size:14px;opacity:.45}
+.slip li b{font-family:var(--hand);font-size:25px;font-weight:600;flex:1}
+.slip li i{font-style:normal;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--date);text-shadow:0 0 .35em rgba(40,140,255,.5)}
+.slip li.you b{color:var(--rose)}
+.actions{display:flex;justify-content:center;gap:18px;margin-top:44px;flex-wrap:wrap;align-items:center}
+
+/* the one link, printed like a photo */
+.tagcard{max-width:470px;margin:20px auto 0;background:#fff;color:var(--ink);padding:14px 14px 22px;transform:rotate(-1.2deg);box-shadow:var(--glow);animation:drop 1.1s cubic-bezier(.2,.8,.2,1) both}
+@keyframes drop{from{transform:translateY(-24px) rotate(-3deg);opacity:0;filter:blur(6px)}}
+.tagcard .hole{display:none}
+.tagcard .photo{background:linear-gradient(150deg,#d7e7f9,#d2e2f4 50%,#d9e7f6);padding:30px 22px 24px;position:relative;overflow:hidden}
+.tagcard .photo > *{position:relative;z-index:2}
+.tagcard h2{font-family:var(--serif);font-style:italic;font-weight:400;font-size:clamp(32px,7vw,42px);line-height:1;margin:8px 0 12px}
+.tagcard p{font-size:18px;line-height:1.45;margin:0 0 16px}
+.tagcard .kicker{text-align:left;color:var(--soft)}
+.linkbox{font-family:var(--mono);font-size:13px;background:rgba(255,255,255,.65);padding:12px;word-break:break-all;border-radius:6px;user-select:all}
+.tagcard .row{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap}
+.tagcard .btn{font-size:18px}
+.tagcard .caption{font-family:var(--hand);font-size:22px;margin:14px 6px 0;color:var(--soft);display:flex;justify-content:space-between;align-items:baseline}
+
+/* sealing stage overlay */
+.stage{position:fixed;inset:0;z-index:50;background:radial-gradient(circle at 50% 45%,rgba(240,247,255,.97),rgba(255,255,255,.97));display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:12vh;animation:fadein .5s both}
+@keyframes fadein{from{opacity:0}}
+
+/* forward dialog */
+dialog.pass{border:0;padding:0;background:none;max-width:min(440px,92vw);width:100%;overflow:visible}
+dialog.pass::backdrop{background:rgba(255,250,248,.75);backdrop-filter:blur(6px)}
+dialog.pass form{box-shadow:var(--glow);background:#f4f9ff;color:var(--ink);padding:30px 26px 22px;transform:rotate(-.6deg);position:relative}
+dialog.pass h2{font-family:var(--serif);font-style:italic;font-weight:400;font-size:34px;margin:0 0 4px}
+dialog.pass p{font-size:17px;font-style:italic;color:var(--soft);margin:0 0 14px;line-height:1.4}
+dialog.pass label{display:block;font-size:11px;letter-spacing:.26em;text-transform:uppercase;margin:16px 0 2px;color:var(--muted)}
+dialog.pass input,dialog.pass textarea{width:100%;font-family:var(--hand);font-size:26px;font-weight:600;border:0;border-bottom:1px solid rgba(36,41,46,.2);background:transparent;color:var(--ink);outline:0;padding:2px 0}
+dialog.pass textarea{resize:none;height:76px;font-weight:500;border:1px solid rgba(159,185,215,.35);border-radius:6px;padding:6px 10px;background:rgba(214,228,243,.25)}
+dialog.pass .row{display:flex;justify-content:space-between;align-items:center;margin-top:22px;gap:12px}
+dialog.pass .btn{font-size:19px}
+dialog.pass .x{background:none;border:0;cursor:pointer;font-size:17px;font-style:italic;color:var(--muted)}
+
+/* gone */
+.gone h1{font-family:var(--serif);font-style:italic;font-weight:400;font-size:clamp(52px,12vw,88px);text-align:center;margin:20px 0 6px;color:var(--ink)}
+.gone p{text-align:center;font-family:var(--serif);font-style:italic;font-size:23px;color:var(--soft);margin:0 auto 40px;max-width:480px;line-height:1.35}
+.gone .env{opacity:.45;filter:grayscale(.5) blur(1.5px) drop-shadow(0 1em 1.4em rgba(0,0,0,.08))}
+
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:rgba(36,41,46,.92);color:#fff;font-style:italic;padding:10px 20px;border-radius:999px;font-size:17px;z-index:99;box-shadow:var(--glow);animation:drop .5s both}
+
+/* ================= vintage mail: aged ivory paper, fountain-pen ink, engraved stamps ================= */
+:root{--paper:#f7f5ee; --ivory:#eeece0; --ivory-d:#e2dfcf; --ivory-in:#cfcab4}
+/* aged envelope paper: yellowed edges, soft stains, a couple of creases */
+.front{background:
+  radial-gradient(18% 22% at 8% 92%,rgba(160,140,90,.16),transparent 70%),
+  radial-gradient(14% 18% at 84% 18%,rgba(170,150,100,.10),transparent 70%),
+  linear-gradient(103deg,transparent 47%,rgba(255,255,255,.28) 48%,rgba(120,110,80,.05) 49%,transparent 50.5%),
+  radial-gradient(130% 120% at 50% 45%,transparent 58%,rgba(150,130,80,.22)),
+  linear-gradient(170deg,#f3f1e7,var(--ivory) 55%,#e7e4d4);border-radius:.18em}
+.front .tex::after,.tex::after{opacity:.2}
+.front .ret{position:absolute;left:1.3em;top:1.1em;font-family:var(--pen);font-size:.78em;line-height:1.7;color:var(--ink-blue);opacity:.9;transform:rotate(-1.5deg);z-index:2}
+.front .ret b{font-weight:400;font-size:1.15em}
+.front .stamps{position:absolute;right:1.1em;top:1em;display:flex;flex-direction:row-reverse;gap:.25em;z-index:2}
+.front .stamps .stamp{width:3.3em;height:3.95em;padding:.22em;transform:rotate(var(--sr,1deg))}
+.front .stamps .stamp:nth-child(2){--sr:-1.5deg}.front .stamps .stamp:nth-child(3){--sr:2deg}.front .stamps .stamp:nth-child(4){--sr:-.5deg}
+.stamp{background:#fbfaf5;box-shadow:none}
+.stamp-art{background:#fbfaf5;filter:saturate(.85) contrast(.95)}
+.stamp-art::after{mix-blend-mode:multiply;opacity:.25}
+.stamp-art svg{position:absolute;inset:0;width:100%;height:100%}
+.front .pm{right:auto;left:30%;width:12.5em;color:rgba(25,27,31,.72);filter:url(#ink);z-index:3}
+.front .byhand{position:absolute;right:1.4em;top:6.6em;font-family:Arial,sans-serif;font-weight:700;font-size:.95em;letter-spacing:.12em;color:var(--ink-blue);opacity:.75;border-bottom:.12em solid currentColor;transform:rotate(-4deg);filter:url(#ink);z-index:3}
+.front .addr{left:28%;top:44%;right:.6em;transform:rotate(-2deg);border:0;font-family:var(--pen);font-weight:400;font-size:1.05em;line-height:1.75;color:var(--ink-blue);white-space:normal;overflow:visible;z-index:2}
+.front .addr b{display:block;font-weight:400;font-size:2.1em;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.front .addr span{display:block;padding-left:1.6em;opacity:.85}
+.front .censor{position:absolute;left:1.2em;bottom:1em;width:3.6em;color:var(--censor);opacity:.72;mix-blend-mode:multiply;filter:url(#ink);z-index:3}
+
+/* back of the envelope in the same paper */
+.env-inside{background:linear-gradient(#c9c3a9,#d8d3bd 55%,var(--ivory-d));box-shadow:inset 0 1.2em 1.4em -1em rgba(90,80,50,.35)}
+.pocket{background:radial-gradient(130% 120% at 50% 40%,transparent 60%,rgba(150,130,80,.18)),linear-gradient(170deg,#f1efe4,var(--ivory) 60%,#e5e2d1)}
+.pocket svg path{stroke:rgba(120,105,70,.25)}
+.flap .shape{background:linear-gradient(#f4f2e8,#e9e6d7)}
+.flap .in .shape{background:linear-gradient(#c7c1a7,#d6d1bb)}
+.flap .out{filter:drop-shadow(0 .2em .25em rgba(90,80,50,.22))}
+/* navy sealing wax */
+.seal{background:radial-gradient(circle at 34% 30%,#6f86ad,#2c4472 52%,#17284a)}
+.seal::before{background:#22375f}
+.seal b{color:rgba(10,20,45,.55);text-shadow:0 .04em 0 rgba(255,255,255,.22)}
+.wordmark .mark{background:radial-gradient(circle at 34% 30%,#6f86ad,#2c4472 52%,#17284a);color:rgba(220,230,250,.6)}
+
+/* the letter: plain writing paper, folded in thirds, blue ink */
+.sheet{background-color:#fbfaf6;background-image:radial-gradient(130% 120% at 50% 40%,transparent 62%,rgba(150,130,80,.12));padding:46px 40px 44px}
+.sheet::before{background:linear-gradient(transparent calc(33.3% - 3px),rgba(110,100,70,.08) calc(33.3% - 1px),rgba(255,255,255,.8) 33.3%,transparent calc(33.3% + 3px)),linear-gradient(transparent calc(66.6% - 3px),rgba(110,100,70,.08) calc(66.6% - 1px),rgba(255,255,255,.8) 66.6%,transparent calc(66.6% + 3px))}
+.sheet .date{font-family:var(--pen);font-size:15px;color:var(--ink-blue);text-shadow:none;letter-spacing:0;opacity:.85}
+.sheet .dear,.sheet .sign,.sheet .body,.sheet textarea,.sheet input{font-family:var(--script);font-size:30px;line-height:var(--lh);color:var(--ink-blue);font-weight:400}
+.sheet .dear{font-weight:400}
+.sheet input{border-bottom:1px dotted rgba(43,74,139,.35)}
+.sheet ::placeholder{color:rgba(43,74,139,.3)}
+.letter-peek{background-color:#fbfaf6;background-image:none;font-family:var(--script);color:var(--ink-blue)}
+.letter-peek .scribble{background:rgba(43,74,139,.16)}
+
+/* handwriting elsewhere matches the pen */
+.slip{background:#fbfaf5}
+.slip li b,.scrap .paper,.note button,.note div.row,.ghost b,.tagcard .caption{font-family:var(--script);color:var(--ink-blue)}
+.slip li b{font-size:24px;font-weight:400}
+.slip li i{font-family:Arial,sans-serif;font-weight:700;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--censor);text-shadow:none;border:1.5px solid currentColor;padding:1px 5px;transform:rotate(-4deg);opacity:.75}
+.slip li.you b{color:var(--ink-blue)}
+.datestamp{font-family:var(--pen);color:var(--ink-blue);text-shadow:none;letter-spacing:0}
+.tagcard .photo{background:radial-gradient(130% 120% at 50% 40%,transparent 60%,rgba(150,130,80,.18)),linear-gradient(170deg,#f3f1e7,var(--ivory))}
+.desk-caption,.pen-hint{font-family:var(--script);color:var(--ink-blue);opacity:.8}
+.card{filter:drop-shadow(0 1px 1px rgba(40,40,30,.16)) drop-shadow(5px 9px 10px rgba(40,40,30,.13))}
+.flap:focus,.letter-peek:focus,.env:focus{outline:none}
+.flap:focus-visible .seal{box-shadow:0 0 0 .2em rgba(43,74,139,.35)}
+.env{filter:drop-shadow(0 .9em 1.2em rgba(60,55,40,.18)) drop-shadow(0 .15em .25em rgba(60,55,40,.12)) contrast(.97)}
+.wordmark{display:inline-flex;gap:0;font-family:'Special Elite',ui-monospace,monospace;font-weight:400;font-size:clamp(30px,6vw,40px);letter-spacing:.04em;color:#111316;text-shadow:0 0 .5px rgba(17,19,22,.8),.4px .3px 0 rgba(17,19,22,.35)}
+.wordmark span{display:inline-block;transform:translateY(var(--y)) rotate(var(--rot));opacity:var(--o)}
+.wordmark .sp{width:.45em}
+.tag,.room .brand .tag{font-family:var(--script);font-style:normal;font-size:21px;color:var(--ink-blue);transform:rotate(-1.5deg);transform-origin:left}
+@media (max-width:640px){.sheet{padding:40px 18px 34px 20px}.sheet .dear,.sheet .sign,.sheet .body,.sheet textarea,.sheet input{font-size:24px}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="ink"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="3" result="t"/><feDisplacementMap in="SourceGraphic" in2="t" scale="2.5" result="d"/>
+    <feColorMatrix in="t" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.6 2" result="holes"/><feComposite in="d" in2="holes" operator="in"/></filter>
+</svg>
+<main id="app"></main>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const app = $('#app');
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const buzz = (p) => navigator.vibrate && navigator.vibrate(p);
+const fmtDate = (t) => new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+const filmDate = (t) => { const d = new Date(t), p = (n) => String(n).padStart(2, '0'); return `'${String(d.getFullYear()).slice(2)} ${p(d.getMonth() + 1)} ${p(d.getDate())}`; };
+const rnd = (a, b) => a + Math.random() * (b - a);
+// stable pseudo-random per string so a letter always lies on the desk the same way
+const seeded = (str, a, b) => { let h = 0; for (const c of String(str)) h = (h * 31 + c.charCodeAt(0)) | 0; return a + ((Math.abs(h) % 1000) / 1000) * (b - a); };
+
+// crypto.randomUUID only exists in secure contexts; phones on LAN http need a fallback
+const device = localStorage.getItem('device') || (() => {
+  const d = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
+  localStorage.setItem('device', d); return d;
+})();
+const myName = { get: () => localStorage.getItem('name') || '', set: (n) => localStorage.setItem('name', n) };
+const sent = {
+  all: () => { try { return JSON.parse(localStorage.getItem('sent') || '[]'); } catch { return []; } },
+  add: (g) => localStorage.setItem('sent', JSON.stringify([g, ...sent.all()].slice(0, 8))),
+};
+
+async function api(path, body) {
+  const r = await fetch('/api' + path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {});
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(data.error || 'Something tore.'), { data, status: r.status });
+  return data;
+}
+
+function toast(msg) {
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+  document.body.append(t); setTimeout(() => t.remove(), 2600);
+}
+
+async function copy(text) {
+  try { await navigator.clipboard.writeText(text); }
+  catch { // plain http on a LAN: no async clipboard
+    const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.append(ta); ta.select(); document.execCommand('copy'); ta.remove();
+  }
+  toast('Link copied. Hand it to one person.');
+}
+
+// jagged clip-path, in px so the tear looks the same at any size
+function torn(el, sides = 'trbl', amp = 5, step = 4) {
+  const pts = [], j = () => rnd(0, amp).toFixed(1);
+  const n = Math.round(100 / step);
+  for (let i = 0; i <= n; i++) pts.push(`${i * step}% ${sides.includes('t') ? j() : 0}px`);
+  for (let i = 0; i <= n; i++) pts.push(`calc(100% - ${sides.includes('r') ? j() : 0}px) ${i * step}%`);
+  for (let i = n; i >= 0; i--) pts.push(`${i * step}% calc(100% - ${sides.includes('b') ? j() : 0}px)`);
+  for (let i = n; i >= 0; i--) pts.push(`${sides.includes('l') ? j() : 0}px ${i * step}%`);
+  el.style.clipPath = `polygon(${pts.join(',')})`;
+}
+
+/* ---------- stamps & postmarks ---------- */
+// engraved stamps in one ink colour, like old definitives
+const ART = {
+  head:  '<path d="M14 38c1-3 2-5 1-7l-2-1 1-2-1-1 2-1-1-2c1-6 5-10 10-10 6 0 9 5 9 10 0 4-2 6-3 8 0 2 1 4 3 6z"/>',
+  light: '<path d="M18 38l1.5-18h3L24 38z"/><rect x="18" y="16" width="6" height="4"/><path d="M21 13l-2 3h4z"/><path d="M9 16l8 1.5M33 16l-8 1.5M10 21l7-2M32 21l-7-2" stroke="currentColor" stroke-width=".9"/><path d="M6 38q7-3 15 0t15 0v1H6z"/>',
+  dove:  '<path d="M8 26c5-1 8 1 11 3l3-7c2-5 7-7 12-6-3 1-5 3-6 6 3 0 5 1 6 3-4-1-7 0-9 3 4 0 6 2 7 4-6-2-12-1-17 0-3 0-6-3-7-6z"/>',
+  hills: '<path d="M4 38l9-12 6 7 7-11 10 16z"/><circle cx="29" cy="13" r="3.5"/>',
+};
+const STAMPS = {
+  dusk:  { ink: '#3f5f9c', art: 'head',  v: '2½', cap: 'ONE COPY' },
+  sea:   { ink: '#3f7d68', art: 'light', v: '1¢', cap: 'BY HAND' },
+  bloom: { ink: '#4f6fa8', art: 'dove',  v: '3d', cap: 'SLOWLY' },
+  cloud: { ink: '#5d6a7c', art: 'hills', v: '5¢', cap: 'NO COPIES' },
+};
+const STAMP_KEYS = Object.keys(STAMPS);
+const stampHTML = (k) => {
+  const s = STAMPS[k] || STAMPS.dusk;
+  return `<div class="stamp"><div class="stamp-art" style="color:${s.ink}"><svg viewBox="0 0 40 48" aria-hidden="true">
+    <defs><pattern id="hatch-${k}" width="1.6" height="1.6" patternUnits="userSpaceOnUse"><path d="M0 .8h1.6" stroke="${s.ink}" stroke-width=".45"/></pattern></defs>
+    <rect width="40" height="48" fill="#fbfaf5"/>
+    <rect x="3.5" y="7" width="33" height="32" fill="url(#hatch-${k})" opacity=".55"/>
+    <g fill="currentColor">${ART[s.art]}</g>
+    <rect x="1.6" y="1.6" width="36.8" height="44.8" fill="none" stroke="currentColor" stroke-width="1.1"/>
+    <rect x="3.5" y="7" width="33" height="32" fill="none" stroke="currentColor" stroke-width=".5"/>
+    <text x="20" y="5.7" text-anchor="middle" font-size="4" font-weight="600" letter-spacing=".7" fill="currentColor" font-family="Cormorant Garamond,serif">POSTAGE</text>
+    <text x="20" y="44.6" text-anchor="middle" font-size="3.6" font-weight="600" letter-spacing=".6" fill="currentColor" font-family="Cormorant Garamond,serif">${s.cap}</text>
+    <text x="5" y="13" font-size="5.5" font-weight="600" fill="currentColor" font-family="Cormorant Garamond,serif">${s.v}</text>
+  </svg></div></div>`;
+};
+// every pair of hands adds a stamp
+const stampsFor = (l) => {
+  const start = Math.max(0, STAMP_KEYS.indexOf(l.stamp));
+  return l.hops.slice(0, 4).map((_, i) => stampHTML(STAMP_KEYS[(start + i) % STAMP_KEYS.length])).join('');
+};
+// purple "passed by censor" style mark
+const censor = (l) => {
+  const n = 10000 + (Math.abs([...String(l.id || 'x')].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7)) % 9000);
+  return `<svg class="censor" viewBox="0 0 80 92" style="transform:rotate(${seeded(l.id || 'x', -12, 6)}deg)" aria-hidden="true">
+    <path d="M6 10h68v34c0 22-16 36-34 44C22 80 6 66 6 44z" fill="none" stroke="currentColor" stroke-width="3.2"/>
+    <text x="40" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor" font-family="Arial,sans-serif" letter-spacing=".5">ONLY</text>
+    <text x="40" y="41" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor" font-family="Arial,sans-serif" letter-spacing=".5">COPY</text>
+    <text x="40" y="54" text-anchor="middle" font-size="9" font-weight="700" fill="currentColor" font-family="Arial,sans-serif">No.</text>
+    <text x="40" y="70" text-anchor="middle" font-size="14" font-weight="700" fill="currentColor" font-family="Arial,sans-serif">${n}</text></svg>`;
+};
+
+let pmUid = 0;
+function postmark(hop, i) {
+  const id = 'pm' + (pmUid++), d = new Date(hop.sentAt);
+  const mon = d.toLocaleDateString('en', { month: 'short' }).toUpperCase();
+  const waves = [0, 1, 2, 3, 4, 5].map((k) => `<path d="M118 ${22 + k * 15} q 12 -7 24 0 t 24 0 t 24 0 t 24 0 t 24 0 t 24 0" fill="none" stroke="currentColor" stroke-width="2.6"/>`).join('');
+  return `<svg class="pm" viewBox="0 0 270 120" style="top:${0.8 + i * 1.7}em;transform:rotate(${seeded(hop.sentAt, -12, 8)}deg) translateX(${-i * 1.4}em)" aria-hidden="true">
+    <defs><path id="${id}" d="M60 60m-41 0a41 41 0 1 1 82 0a41 41 0 1 1-82 0"/></defs>
+    <circle cx="60" cy="60" r="55" fill="none" stroke="currentColor" stroke-width="3.5"/>
+    
+    <text font-family="Arial, sans-serif" font-size="12.5" font-weight="700" letter-spacing="2" fill="currentColor"><textPath href="#${id}">ONE COPY POST · HAND ${i + 1} ·</textPath></text>
+    <text x="60" y="58" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="currentColor">${mon} ${d.getDate()}</text>
+    <text x="60" y="75" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="currentColor">${d.getFullYear()}</text>
+    ${waves}</svg>`;
+}
+
+/* ---------- envelope parts ---------- */
+const lastHop = (l) => l.hops[l.hops.length - 1];
+function frontHTML(l) {
+  const h = lastHop(l);
+  return `<div class="face front tex">
+    <div class="ret"><b>${esc(h.from)}</b><br>one copy post</div>
+    <div class="stamps">${stampsFor(l)}</div>
+    ${l.hops.map(postmark).join('')}
+    ${l.hops.length > 1 ? '<div class="byhand">BY HAND</div>' : ''}
+    <div class="addr"><b>${esc(h.to)}</b><span>whoever holds this,</span><span>the only copy</span></div>
+    ${censor(l)}
+  </div>`;
+}
+function backHTML(l) {
+  const h = lastHop(l);
+  return `<div class="face back">
+    <div class="env-inside"></div>
+    <div class="letter-peek tex" role="button" tabindex="-1" aria-label="Pull the letter out">Dear ${esc(l.hops[0].to)},<div class="scribble" style="width:86%"></div><div class="scribble" style="width:70%"></div><div class="scribble" style="width:80%"></div></div>
+    <div class="pocket tex"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0 100 50 54 100 100" fill="none" stroke="rgba(88,118,152,.18)" stroke-width="1" vector-effect="non-scaling-stroke"/></svg></div>
+    <div class="flap" role="button" tabindex="0" aria-label="Break the seal: drag it up, or press Enter">
+      <div class="side out"><div class="shape tex"></div><div class="seal"><b>${esc((h.from || '?').trim()[0]?.toUpperCase() || '?')}</b></div></div>
+      <div class="side in"><div class="shape tex"></div></div>
+    </div>
+  </div>`;
+}
+const setFlap = (flap, a, ms = 0) => {
+  flap.style.transition = ms ? `transform ${ms}ms cubic-bezier(.3,.75,.25,1)` : 'none';
+  flap.style.transform = `perspective(1100px) rotateX(${a}deg)`;
+};
+
+/* ---------- interactions ---------- */
+// Press the seal, drag up. The flap follows your finger: tip height = h·cos(angle).
+function dragFlapOpen(back, onOpen) {
+  const flap = $('.flap', back), seal = $('.seal', back);
+  let startY = null, angle = 0, done = false, moved = false;
+  flap.classList.add('grabbable'); seal.classList.add('hint');
+  const open = () => {
+    done = true; flap.classList.remove('grabbable', 'grabbing'); setFlap(flap, 180, 520); buzz([12, 40, 18]); sfx.peel();
+    setTimeout(() => { flap.classList.add('behind'); onOpen(); }, 480);
+  };
+  flap.addEventListener('pointerdown', (e) => {
+    if (done) return;
+    startY = e.clientY; moved = false; flap.setPointerCapture(e.pointerId);
+    flap.classList.add('grabbing'); seal.classList.remove('hint');
+  });
+  flap.addEventListener('pointermove', (e) => {
+    if (startY == null || done) return;
+    const h = flap.offsetHeight, dy = startY - e.clientY;
+    if (Math.abs(dy) > 4) moved = true;
+    if (dy > 10 && !seal.classList.contains('cracked')) { seal.classList.add('cracked'); buzz(15); sfx.crack(); }
+    angle = Math.acos(Math.max(-1, Math.min(1, (h - dy * 1.1) / h))) * 180 / Math.PI;
+    setFlap(flap, angle);
+  });
+  const release = () => {
+    if (startY == null || done) return;
+    startY = null; flap.classList.remove('grabbing');
+    if (!moved) { flap.classList.add('wiggle'); setTimeout(() => flap.classList.remove('wiggle'), 500); seal.classList.add('hint'); return; }
+    if (angle > 80) open(); else { setFlap(flap, 0, 380); angle = 0; seal.classList.add('hint'); }
+  };
+  flap.addEventListener('pointerup', release);
+  flap.addEventListener('pointercancel', release);
+  flap.addEventListener('keydown', (e) => { if (!done && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); seal.classList.add('cracked'); sfx.crack(); open(); } });
+  flap.focus({ preventScroll: true });
+}
+
+// Once the letter has risen: drag it (or tap it) out of the envelope.
+function pullLetterOut(back, onOut) {
+  const peek = $('.letter-peek', back);
+  back.classList.add('pullable'); peek.tabIndex = 0; peek.focus({ preventScroll: true });
+  let startY = null, done = false;
+  const out = () => { if (done) return; done = true; back.classList.add('pulled'); buzz(10); sfx.slide(); setTimeout(onOut, 520); };
+  peek.addEventListener('pointerdown', (e) => { startY = e.clientY; peek.setPointerCapture(e.pointerId); peek.style.transition = 'none'; });
+  peek.addEventListener('pointermove', (e) => {
+    if (startY == null || done) return;
+    const dy = Math.max(0, startY - e.clientY);
+    peek.style.transform = `translateY(calc(-58% - ${dy}px))`;
+    if (dy > 70) { peek.style.transition = ''; peek.style.transform = ''; out(); }
+  });
+  peek.addEventListener('pointerup', () => { startY = null; peek.style.transition = ''; peek.style.transform = ''; if (!done) out(); });
+  peek.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); out(); } });
+}
+
+// The letter goes in, the flap folds down, the wax drops, and it flies off. It's gone.
+async function sealAndSend(meta) {
+  const ov = document.createElement('div'); ov.className = 'stage';
+  ov.innerHTML = `<div class="env show-back">${backHTML(meta)}</div><p class="instr">sealing…</p>`;
+  document.body.append(ov);
+  const env = $('.env', ov), back = $('.back', ov), flap = $('.flap', ov), seal = $('.seal', ov), instr = $('.instr', ov);
+  setFlap(flap, 180); flap.classList.add('behind'); seal.classList.add('pre');
+  back.classList.add('risen');
+  await sleep(450);
+  back.classList.remove('risen'); sfx.slide(); await sleep(800);
+  flap.classList.remove('behind'); setFlap(flap, 0, 620); sfx.rustle(0.09); await sleep(650);
+  seal.classList.add('thud'); seal.classList.remove('pre'); buzz(30); setTimeout(sfx.thud, 180); instr.textContent = 'sealed.'; await sleep(700);
+  instr.textContent = 'and… it’s gone.'; env.classList.add('fly'); sfx.swoosh(0.9, 0.14); await sleep(950);
+  ov.remove();
+}
+
+/* ---------- views ---------- */
+function logo() {
+  // typed on an old machine: every key strikes a little differently
+  return `<a class="wordmark" href="#/" aria-label="One Copy">${[...'one copy'].map((c, i) => c === ' ' ? '<span class="sp"> </span>'
+    : `<span style="--y:${seeded(c + i, -1.6, 1.6).toFixed(1)}px;--o:${seeded(i + c, 0.88, 1).toFixed(2)};--rot:${seeded(c + i + 'r', -2.5, 2.5).toFixed(1)}deg">${c}</span>`).join('')}</a>`;
+}
+
+// where each letter lies on your desk (just this browser's arrangement)
+const layout = {
+  all: () => { try { return JSON.parse(localStorage.getItem('layout') || '{}'); } catch { return {}; } },
+  save: (id, pos) => { const a = layout.all(); a[id] = pos; localStorage.setItem('layout', JSON.stringify(a)); },
+};
+const SPOTS = [[0, 0, -4], [-120, -70, 9], [130, -50, -11], [-90, 80, 6], [110, 90, -3], [10, -120, 13], [-170, 10, -8], [180, 30, 7]];
+
+// ---------- sound: everything synthesized with Web Audio, no files ----------
+const sfx = (() => {
+  let ctx, noiseBuf, pinkBuf;
+  const ac = () => {
+    if (!ctx) {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+      const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      // pink noise (Paul Kellet's filter) for paper: less hiss, more body
+      pinkBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+      const pk = pinkBuf.getChannelData(0); let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      for (let i = 0; i < pk.length; i++) {
+        const w = Math.random() * 2 - 1;
+        b0 = .99886 * b0 + w * .0555179; b1 = .99332 * b1 + w * .0750759; b2 = .969 * b2 + w * .153852;
+        b3 = .8665 * b3 + w * .3104856; b4 = .55 * b4 + w * .5329522; b5 = -.7616 * b5 - w * .016898;
+        pk[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * .5362) * .11; b6 = w * .115926;
+      }
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  };
+  // filtered noise with an envelope; freq can sweep from f0 to f1
+  function noise({ dur = 0.15, vol = 0.1, type = 'bandpass', f0 = 2000, f1 = f0, q = 1, attack = 0.005, delay = 0, pink = false }) {
+    try {
+      const c = ac(), t = c.currentTime + delay;
+      const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+      src.buffer = pink ? pinkBuf : noiseBuf; src.playbackRate.value = 0.8 + Math.random() * 0.4;
+      f.type = type; f.Q.value = q; f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(Math.max(40, f1), t + dur);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + attack); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(f).connect(g).connect(c.destination); src.start(t, Math.random()); src.stop(t + dur + 0.05);
+    } catch {}
+  }
+  function tone({ freq = 120, to = freq, dur = 0.2, vol = 0.2, type = 'sine', delay = 0 }) {
+    try {
+      const c = ac(), t = c.currentTime + delay, o = c.createOscillator(), g = c.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t); o.frequency.exponentialRampToValueAtTime(to, t + dur);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.05);
+    } catch {}
+  }
+  const r = (a, b) => a + Math.random() * (b - a);
+  return {
+    // picking up / putting down paper
+    rustle: (vol = 0.1) => { noise({ dur: r(0.18, 0.26), vol: vol * 0.9, type: 'lowpass', f0: 2600, f1: 1100, q: 0.4, attack: 0.025, pink: true }); for (let i = 0; i < 3; i++) noise({ dur: r(0.006, 0.014), vol: r(0.02, 0.05), f0: r(1200, 3200), q: 1.5, delay: r(0.01, 0.14) }); },
+    // lifting a letter off the desk: a soft fwip plus a few fibre crinkles
+    pickup: () => {
+      noise({ dur: r(0.16, 0.22), vol: 0.09, type: 'lowpass', f0: r(2400, 3000), f1: 900, q: 0.5, attack: 0.03, pink: true });
+      for (let i = 0; i < 4; i++) noise({ dur: r(0.005, 0.012), vol: r(0.015, 0.04), f0: r(1500, 3500), q: 1.8, delay: r(0, 0.12) });
+    },
+    // the letter landing: a muffled pff and a light tap on the table
+    drop: () => {
+      noise({ dur: r(0.1, 0.14), vol: 0.12, type: 'lowpass', f0: 1100, f1: 350, q: 0.6, attack: 0.004, pink: true });
+      tone({ freq: r(150, 190), to: 80, dur: 0.07, vol: 0.05 });
+      for (let i = 0; i < 2; i++) noise({ dur: 0.008, vol: r(0.01, 0.025), f0: r(1800, 3000), q: 2, delay: r(0.02, 0.08) });
+    },
+    // paper sliding on the desk: a continuous hush that follows drag speed
+    drag: () => {
+      try {
+        const c = ac(), src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+        src.buffer = pinkBuf; src.loop = true; f.type = 'bandpass'; f.frequency.value = 1400; f.Q.value = 0.5; g.gain.value = 0;
+        src.connect(f).connect(g).connect(c.destination); src.start(0, Math.random() * 1.5);
+        let level = 0;
+        return {
+          set(speed) { // px per event
+            const target = Math.min(0.07, speed * 0.004);
+            level += (target - level) * 0.35;
+            const t = c.currentTime;
+            g.gain.cancelScheduledValues(t);
+            g.gain.setTargetAtTime(level, t, 0.03);
+            g.gain.setTargetAtTime(0, t + 0.09, 0.08); // hold still and the sound settles
+            f.frequency.setTargetAtTime(900 + Math.min(2200, speed * 70), c.currentTime, 0.05);
+          },
+          stop() { g.gain.setTargetAtTime(0, c.currentTime, 0.04); src.stop(c.currentTime + 0.3); },
+        };
+      } catch { return { set() {}, stop() {} }; }
+    },
+    // ballpoint on paper: a soft rolling stroke per keystroke, pitch wobbling with the hand
+    write: () => {
+      const dur = r(0.06, 0.14), f = r(1600, 2800);
+      noise({ dur, vol: r(0.05, 0.09), f0: f, f1: f * r(0.75, 1.3), q: r(1.2, 2.2), attack: dur * 0.3, pink: true });
+      noise({ dur: dur * 0.8, vol: r(0.01, 0.02), type: 'highpass', f0: 5000, q: 0.5, attack: dur * 0.3 });
+      if (Math.random() < 0.3) noise({ dur: 0.006, vol: 0.02, f0: r(3000, 4500), q: 3, delay: dur * 0.9 }); // pen lifting off
+    },
+    // retractable pen: click-down, then the spring clicking back
+    click: () => {
+      noise({ dur: 0.008, vol: 0.28, f0: 4200, q: 3 }); tone({ freq: 2600, to: 1800, dur: 0.018, vol: 0.06, type: 'triangle' });
+      noise({ dur: 0.007, vol: 0.2, f0: 3300, q: 3, delay: 0.085 }); tone({ freq: 2100, to: 1500, dur: 0.015, vol: 0.045, type: 'triangle', delay: 0.085 });
+    },
+    // air moving: envelope flips, flies off
+    swoosh: (dur = 0.45, vol = 0.12) => noise({ dur, vol, f0: 500, f1: 3500, q: 1.4, attack: dur * 0.45 }),
+    // letter sliding against the envelope
+    slide: () => noise({ dur: 0.5, vol: 0.07, type: 'lowpass', f0: 900, f1: 2600, q: 0.5, attack: 0.18 }),
+    // the wax seal cracking
+    crack: () => { noise({ dur: 0.06, vol: 0.35, f0: 1400, q: 3 }); noise({ dur: 0.04, vol: 0.25, f0: 3200, q: 4, delay: 0.05 }); tone({ freq: 140, to: 60, dur: 0.08, vol: 0.15 }); },
+    // flap peeling open: a run of tiny crackles
+    peel: () => { for (let i = 0; i < 9; i++) noise({ dur: 0.03, vol: r(0.03, 0.08), f0: r(2500, 5000), q: 2, delay: i * r(0.025, 0.045) }); noise({ dur: 0.4, vol: 0.05, f0: 1800, f1: 3000, q: 0.6, attack: 0.15 }); },
+    // pressing wax / stamping
+    thud: () => { tone({ freq: 110, to: 45, dur: 0.22, vol: 0.35 }); noise({ dur: 0.08, vol: 0.12, type: 'lowpass', f0: 600, q: 0.7 }); },
+    // a rubber stamp hitting paper (buttons)
+    stamp: () => { tone({ freq: 160, to: 70, dur: 0.1, vol: 0.18 }); noise({ dur: 0.05, vol: 0.08, f0: 1200, q: 1 }); },
+    // paper unfolding: three soft creaks
+    unfold: () => { [0, 0.22, 0.44].forEach((d) => noise({ dur: 0.22, vol: 0.07, f0: r(1500, 2600), f1: r(2600, 4000), q: 0.8, attack: 0.08, delay: d })); },
+  };
+})();
+const rustle = (v) => sfx.rustle(v);
+
+async function viewDesk() {
+  app.innerHTML = `<div class="room" id="room">
+      <header class="brand">${logo()}<p class="tag">mail that leaves your hands.</p></header>
+      <div class="scatter" id="scatter"></div>
+      <a class="pen" href="#/write" aria-label="Pick up the pen to write a letter"><svg viewBox="0 0 320 44" aria-hidden="true">
+    <defs>
+      <linearGradient id="barrel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6b7480"/><stop offset=".2" stop-color="#22262c"/><stop offset=".7" stop-color="#101216"/><stop offset="1" stop-color="#2a2f36"/></linearGradient>
+      <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".35" stop-color="#c9d3de"/><stop offset=".7" stop-color="#8c99a8"/><stop offset="1" stop-color="#d7dee6"/></linearGradient>
+      <linearGradient id="grip" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a5566"/><stop offset=".3" stop-color="#1b212b"/><stop offset="1" stop-color="#2a313c"/></linearGradient>
+      <linearGradient id="shine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".45"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    </defs>
+    <path d="M2 22 L34 13 Q40 22 34 31 Z" fill="url(#metal)"/>
+    <path d="M6 22 L30 22" stroke="#5c6876" stroke-width="1"/><circle cx="26" cy="22" r="1.6" fill="#5c6876"/>
+    <rect x="33" y="12" width="34" height="20" rx="4" fill="url(#grip)"/>
+    <rect x="64" y="10" width="8" height="24" rx="2" fill="url(#metal)"/>
+    <rect x="70" y="9" width="170" height="26" rx="7" fill="url(#barrel)"/>
+    <rect x="236" y="9" width="8" height="26" rx="1.5" fill="url(#metal)"/>
+    <rect x="242" y="9" width="70" height="26" rx="11" fill="url(#barrel)"/>
+    <path d="M250 6 h46 q6 0 6 6 v2 h-52 z" fill="url(#metal)"/>
+    <rect x="252" y="5" width="44" height="4" rx="2" fill="url(#metal)"/>
+    <rect x="76" y="12" width="160" height="4" rx="2" fill="url(#shine)"/>
+    <rect x="248" y="12" width="58" height="4" rx="2" fill="url(#shine)"/>
+  </svg></a>
+      <p class="pen-hint">pick up the pen ↘</p>
+      <div id="gone"></div>
+    </div>`;
+  const { letters } = await api(`/desk?device=${encodeURIComponent(device)}`).catch(() => ({ letters: [] }));
+  const room = $('#room'), scatter = $('#scatter');
+  if (!letters.length) {
+    scatter.outerHTML = `<p class="empty-desk">Your desk is clear.<br>Letters live in one place at a time — when someone hands you one, it lands here.</p>`;
+  } else {
+    const saved = layout.all();
+    const stack = letters.slice(0, 8).reverse(); // oldest underneath, newest on top
+    scatter.innerHTML = stack.map((l, i) => {
+      const spot = SPOTS[(stack.length - 1 - i) % SPOTS.length];
+      const p = saved[l.id] || { x: spot[0] + seeded(l.id, -15, 15), y: spot[1] + seeded(l.id + 'y', -12, 12), r: spot[2] };
+      return `<a class="card arrive" href="#/read/${l.id}" draggable="false" data-id="${l.id}" aria-label="Letter from ${esc(lastHop(l).from)}. Drag to move, tap to open."
+        style="--x:calc(50% + ${p.x}px);--y:calc(50% + ${p.y}px);--r:${p.r}deg;--d:${i * 90}ms;z-index:${p.z || i + 1}" data-x="${p.x}" data-y="${p.y}" data-r="${p.r}"><div class="env">${frontHTML(l)}</div></a>`;
+    }).join('');
+    // these have been opened: tear the top edge
+    scatter.querySelectorAll('.card .front').forEach((f) => torn(f, 't', 5, 2.5));
+    room.insertAdjacentHTML('beforeend', `<p class="desk-caption">${letters.length === 1 ? 'one letter on your desk' : `${letters.length} letters on your desk`} · drag them around, tap to open</p>`);
+    let zTop = Math.max(stack.length, ...Object.values(saved).map((p) => p.z || 0));
+    scatter.querySelectorAll('.card').forEach((card) => {
+      let start = null, moved = false, last = null, lastY = null, slider = null;
+      card.addEventListener('click', (e) => e.preventDefault());
+      card.addEventListener('pointerdown', (e) => {
+        card.setPointerCapture(e.pointerId);
+        start = { px: e.clientX, py: e.clientY, x: +card.dataset.x, y: +card.dataset.y, r: +card.dataset.r };
+        last = e.clientX; lastY = e.clientY; moved = false;
+        card.style.zIndex = ++zTop; card.classList.remove('arrive', 'dropped'); card.classList.add('lifted');
+        sfx.pickup(); slider = sfx.drag(); buzz(8);
+      });
+      card.addEventListener('pointermove', (e) => {
+        if (!start) return;
+        const dx = e.clientX - start.px, dy = e.clientY - start.py;
+        if (Math.hypot(dx, dy) > 6) moved = true;
+        // a little twist in the direction you're pulling, like real paper
+        const r = Math.max(-25, Math.min(25, +card.dataset.r + (e.clientX - last) * 0.15));
+        slider && slider.set(Math.hypot(e.clientX - last, e.clientY - lastY));
+        last = e.clientX; lastY = e.clientY;
+        card.dataset.r = r;
+        card.style.setProperty('--x', `calc(50% + ${start.x + dx}px)`);
+        card.style.setProperty('--y', `calc(50% + ${start.y + dy}px)`);
+        card.style.setProperty('--r', `${r}deg`);
+      });
+      const drop = (e) => {
+        if (!start) return;
+        card.classList.remove('lifted');
+        if (slider) { slider.stop(); slider = null; }
+        if (!moved) { start = null; location.hash = `#/read/${card.dataset.id}`; return; }
+        const x = start.x + e.clientX - start.px, y = start.y + e.clientY - start.py;
+        card.dataset.x = x; card.dataset.y = y;
+        layout.save(card.dataset.id, { x, y, r: +card.dataset.r, z: zTop });
+        void card.offsetWidth; card.classList.add('dropped'); sfx.drop(); buzz(12);
+        start = null;
+      };
+      card.addEventListener('pointerup', drop);
+      card.addEventListener('pointercancel', drop);
+    });
+  }
+  $('.pen').addEventListener('click', () => sfx.click());
+
+  const ghosts = sent.all().slice(0, 4);
+  if (!ghosts.length) return;
+  const states = await Promise.all(ghosts.map((g) => api(`/letters/${g.id}?token=${g.token}`).then((r) => r.state).catch(() => 'gone')));
+  $('#gone').outerHTML = `<div class="note tex"><span class="tape"></span><h3>Out in the world</h3>${ghosts.map((g, i) => states[i] === 'sealed'
+    ? `<button data-link="${esc(location.origin + '/#/l/' + g.id + '/' + g.token)}">to ${esc(g.to)}<small>in transit · tap to copy the link</small></button>`
+    : `<div class="row">${esc(g.to)} has it<small>not yours anymore</small></div>`).join('')}</div>`;
+  app.querySelectorAll('.note button[data-link]').forEach((b) => b.onclick = () => copy(b.dataset.link));
+}
+
+function viewWrite() {
+  const stamps = Object.keys(STAMPS).map((k, i) => `<label><input type="radio" name="stamp" value="${k}" ${i ? '' : 'checked'}>${stampHTML(k)}</label>`).join('');
+  app.innerHTML = `<a class="back" href="#/">← back to your desk</a>
+    <form id="f" autocomplete="off">
+      <div class="sheet-wrap"><div class="sheet tex" id="sheet">
+        <div class="date">${fmtDate(Date.now())}</div>
+        <p class="dear">Dear <input name="to" required maxlength="40" placeholder="who?" aria-label="Recipient">,</p>
+        <textarea name="body" required maxlength="4000" placeholder="Write it like it's the only copy. It is." aria-label="Your letter"></textarea>
+        <p class="sign">— <input name="from" required maxlength="40" placeholder="you" aria-label="Your name" value="${esc(myName.get())}"></p>
+      </div></div>
+      <fieldset class="picker"><legend>Pick a stamp</legend>${stamps}</fieldset>
+      <div class="center" style="margin-top:28px"><button class="btn solid">fold &amp; seal</button></div>
+      <p class="fine">Once it's sealed it leaves you. No drafts. No sent folder. No copy.</p>
+    </form>`;
+  torn($('#sheet'), 't', 7, 2.5);
+  const ta = $('textarea'), grow = () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; };
+  ta.addEventListener('input', grow);
+  $('#f').addEventListener('keydown', (e) => {
+    if (e.key.length === 1 || e.key === 'Enter') sfx.write();
+  });
+  $('input[name=to]').focus();
+  $('#f').onsubmit = async (e) => {
+    e.preventDefault();
+    const f = Object.fromEntries(new FormData(e.target));
+    const btn = $('button.solid'); btn.disabled = true;
+    myName.set(f.from);
+    try {
+      const anim = sealAndSend({ stamp: f.stamp, hops: [{ from: f.from, to: f.to }] });
+      const { id, token } = await api('/letters', f);
+      sent.add({ id, token, to: f.to });
+      await anim;
+      viewLink(id, token, f.to);
+    } catch (err) { btn.disabled = false; toast(err.message); }
+  };
+}
+
+function viewLink(id, token, to) {
+  const link = `${location.origin}/#/l/${id}/${token}`;
+  history.replaceState(null, '', '#/sent');
+  app.innerHTML = `<div class="tagcard"><div class="photo tex leak">
+      <p class="kicker">sealed · in transit</p>
+      <h2>it’s not yours anymore.</h2>
+      <p>Hand this link to <b>${esc(to)}</b>. Whoever breaks the seal first holds the only copy — and the link goes dead.</p>
+      <div class="linkbox">${esc(link)}</div>
+      <div class="row"><button class="btn solid" id="copy">copy link</button>${navigator.share ? '<button class="btn" id="share">share…</button>' : ''}</div>
+    </div><div class="caption"><span>for ${esc(to)}</span><span class="datestamp" style="font-size:14px">${filmDate(Date.now())}</span></div></div>
+    <div class="center" style="margin-top:34px"><a class="back" href="#/">← back to your desk</a></div>`;
+  $('#copy').onclick = () => copy(link);
+  if ($('#share')) $('#share').onclick = () => navigator.share({ title: 'A letter for you', text: `There's one copy of this. Open it before anyone else does.`, url: link }).catch(() => {});
+}
+
+async function viewReceive(id, token) {
+  app.innerHTML = '';
+  let r;
+  try { r = await api(`/letters/${id}?token=${token}&device=${encodeURIComponent(device)}`); }
+  catch { return viewGone({ where: 'none' }); }
+  if (r.state === 'yours') return location.replace(`#/read/${id}`);
+  if (r.state === 'gone') return viewGone(r);
+  const l = r.letter;
+  app.innerHTML = `<header class="top">${logo()}</header>
+    <p class="kicker">A letter arrived. There is exactly one.</p>
+    <div style="margin-top:max(12vh,calc(min(500px,86vw) * .42))" id="stage"><div class="env tappable floaty" id="env" tabindex="0" role="button" aria-label="Turn the envelope over">${frontHTML(l)}${backHTML(l)}</div></div>
+    <p class="instr" id="instr">tap to turn it over</p>`;
+  const env = $('#env'), instr = $('#instr');
+  const flip = async () => {
+    env.onclick = env.onkeydown = null; env.classList.remove('tappable', 'floaty'); env.removeAttribute('role'); env.removeAttribute('tabindex');
+    env.classList.add('flipping'); sfx.swoosh(0.3, 0.09); await sleep(200);
+    env.classList.add('show-back'); env.classList.remove('flipping');
+    instr.textContent = 'press the seal & drag it up';
+    const back = $('.back', env);
+    dragFlapOpen(back, async () => {
+      instr.textContent = '';
+      try {
+        const { letter } = await api(`/letters/${id}/open`, { token, device });
+        back.classList.add('risen');
+        await sleep(500);
+        instr.textContent = 'it’s yours now. pull it out.';
+        history.replaceState(null, '', `#/read/${id}`);
+        pullLetterOut(back, () => renderRead(letter));
+      } catch (err) {
+        viewGone(err.data?.where ? err.data : { where: 'held', to: lastHop(l).to });
+      }
+    });
+  };
+  env.onclick = flip;
+  env.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); } };
+  env.focus({ preventScroll: true });
+}
+
+function viewGone(r) {
+  const line = r.where === 'held' ? `It's already in ${esc(r.to)}'s hands. There was only ever one.`
+    : r.where === 'transit' ? `It's moved on — somewhere between ${esc(r.from)} and ${esc(r.to)} now.`
+    : `This letter doesn't exist anymore. Or never did.`;
+  app.innerHTML = `<div class="gone"><header class="top">${logo()}</header><h1>too late.</h1><p>${line}</p>
+    <div class="env" id="ghostenv">${frontHTML({ stamp: 'cloud', hops: [{ from: r.from || '—', to: r.to || '—', sentAt: Date.now() }] })}</div>
+    <div class="center" style="margin-top:46px"><a class="btn" href="#/write">write your own</a></div></div>`;
+  torn($('#ghostenv .front'), 'trbl', 14, 6);
+}
+
+async function viewRead(id) {
+  try {
+    const r = await api(`/letters/${id}?device=${encodeURIComponent(device)}`);
+    if (r.state !== 'yours') { toast("That letter isn't on your desk anymore."); return location.replace('#/'); }
+    renderRead(r.letter);
+  } catch { location.replace('#/'); }
+}
+
+function renderRead(l) {
+  sfx.unfold();
+  const first = l.hops[0];
+  const people = [first.from, ...l.hops.map((h) => h.to)];
+  app.innerHTML = `<a class="back" href="#/">← back to your desk</a>
+    <div class="sheet-wrap unfold"><article class="sheet tex" id="sheet">
+      <div class="date">${fmtDate(first.sentAt)}</div>
+      <p class="dear">Dear ${esc(first.to)},</p>
+      <div class="body">${esc(l.body)}</div>
+      <p class="sign">— ${esc(first.from)}</p>
+    </article></div>
+    ${l.notes.length ? `<div class="scraps">${l.notes.map((n, i) => `<div class="scrap" style="--r:${seeded(n.note, -5, 5)}deg"><span class="tape" style="--tr:${seeded(n.from, -8, 8)}deg"></span><div class="paper tex">${esc(n.note)}<small>${esc(n.from)} → ${esc(n.to)}</small></div></div>`).join('')}</div>` : ''}
+    <div class="slip tex"><h3>Hands this letter has passed through</h3><ol>
+      ${people.map((p, i) => `<li class="${i === people.length - 1 ? 'you' : ''}"><b>${esc(p)}</b>${i === 0 ? '<i>wrote it</i>' : i === people.length - 1 ? '<i>holds it</i>' : `<i>${fmtDate(l.hops[i - 1].openedAt || l.hops[i - 1].sentAt)}</i>`}</li>`).join('')}
+    </ol></div>
+    <div class="actions"><button class="btn solid" id="pass">pass it on</button><a class="btn quiet" href="#/">keep it</a></div>
+    <p class="fine">Pass it on and it leaves your desk for good. You can pin a scrap to it on the way out.</p>
+    <dialog class="pass"><form method="dialog" id="pf" autocomplete="off">
+      <span class="tape"></span>
+      <h2>let it go?</h2><p>You won't have it anymore. Nobody keeps a copy — not even you.</p>
+      <label for="pto">For</label><input id="pto" name="to" required maxlength="40" placeholder="their name">
+      <label for="pfrom">From</label><input id="pfrom" name="from" required maxlength="40" value="${esc(myName.get() || lastHop(l).to)}">
+      <label for="pnote">Pin a scrap (optional)</label><textarea id="pnote" name="note" maxlength="160" placeholder="you need to read this…"></textarea>
+      <div class="row"><button type="button" class="x" id="cancel">never mind</button><button class="btn solid" value="send">seal it &amp; let go</button></div>
+    </form></dialog>`;
+  torn($('#sheet'), 't', 7, 2.5);
+  app.querySelectorAll('.scrap .paper').forEach((p) => torn(p, 'trbl', 4, 6));
+  window.scrollTo({ top: 0 });
+  const dlg = $('dialog.pass');
+  $('#pass').onclick = () => dlg.showModal();
+  $('#cancel').onclick = () => dlg.close();
+  $('#pf').addEventListener('keydown', (e) => { if (e.key.length === 1) sfx.write(); });
+  $('#pf').onsubmit = async (e) => {
+    e.preventDefault();
+    const f = Object.fromEntries(new FormData(e.target));
+    myName.set(f.from);
+    try {
+      const { id, token } = await api(`/letters/${l.id}/forward`, { ...f, device });
+      dlg.close();
+      sent.add({ id, token, to: f.to });
+      await sealAndSend({ stamp: l.stamp, hops: [...l.hops, { from: f.from, to: f.to }] });
+      viewLink(id, token, f.to);
+    } catch (err) { toast(err.message); }
+  };
+}
+
+/* ---------- router ---------- */
+const routes = [
+  [/^#\/write$/, viewWrite],
+  [/^#\/l\/([\w-]+)\/([\w-]+)$/, viewReceive],
+  [/^#\/read\/([\w-]+)$/, viewRead],
+];
+let lastView = null;
+function route() {
+  const h = location.hash;
+  const view = /^#\/(write|l|read)/.test(h) ? h.split('/')[1] : (h === '#/sent' ? 'sent' : 'desk');
+  if (view === 'desk' && lastView && lastView !== 'desk') sfx.swoosh(0.4, 0.1);
+  lastView = view;
+  window.scrollTo(0, 0);
+  if (h === '#/sent') return; // link card is already on screen
+  for (const [re, fn] of routes) { const m = h.match(re); if (m) return fn(...m.slice(1)); }
+  viewDesk();
+}
+addEventListener('hashchange', route);
+document.addEventListener('pointerdown', (e) => { if (e.target.closest('.btn')) sfx.stamp(); });
+route();
+</script>
+</body>
+</html>
